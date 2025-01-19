@@ -46,7 +46,7 @@ def get_motivational_message(differenz, kapitaldienst):
 
 # Interaktive Eingaben
 st.title("💳 Kreditrechner")
-st.subheader("📈 Berechnen Sie Ihre optimale monatliche Rate und gewinnen Sie einen klaren Überblick über Zinsen und Tilgung!")
+st.markdown("Berechnen Sie Ihre optimale monatliche Rate und gewinnen Sie einen klaren Überblick über Zinsen und Tilgung! 📈")
 
 st.markdown("### 🛠️ Schritt 1: Finanzierungsbedarf eingeben")
 kreditbetrag = st.number_input("💰 Finanzierungsbedarf (€):", min_value=2500, max_value=50000, step=100)
@@ -136,6 +136,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("�
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
