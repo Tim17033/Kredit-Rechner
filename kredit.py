@@ -28,13 +28,34 @@ def calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
     restschuld = kreditbetrag
 
     for _ in range(laufzeit * 12):
-        zins = restschuld * (zinssatz / 12)
+        zins = restschuld * (zins_pro_jahr / 12)
         tilgung = monatliche_rate - zins
         restschuld -= tilgung
         zins_anteile.append(zins)
         tilgungs_anteile.append(tilgung)
 
     return zins_anteile, tilgungs_anteile
+
+# Berechnung der Tilgungssätze (monatlich und jährlich)
+def calculate_tilgungssaetze(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
+    restschuld = kreditbetrag
+    monatliche_tilgungssaetze = []
+    jährliche_tilgungssaetze = []
+
+    for jahr in range(1, laufzeit + 1):
+        jährliche_tilgung_summe = 0
+        for monat in range(12):  # 12 Monate pro Jahr
+            zins = restschuld * (zins_pro_jahr / 12)
+            tilgung = monatliche_rate - zins
+            restschuld -= tilgung
+            jährliche_tilgung_summe += tilgung
+            if jahr == 1:
+                monatliche_tilgungssatz = (tilgung / kreditbetrag) * 100
+                monatliche_tilgungssaetze.append(monatliche_tilgungssatz)
+        jährliche_tilgungssatz = (jährliche_tilgung_summe / kreditbetrag) * 100
+        jährliche_tilgungssaetze.append(jährliche_tilgungssatz)
+
+    return monatliche_tilgungssaetze, jährliche_tilgungssaetze
 
 # Interaktive Eingaben
 st.title("📊 Kreditverkaufsrechner")
@@ -68,30 +89,9 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
     else:
         # Berechnungen
         monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
-        zins_anteil = kreditbetrag * (zinssatz / 12)
-        tilgung_anteil = monatliche_rate - zins_anteil
-        anfaenglicher_tilgungsprozentsatz = (tilgung_anteil / kreditbetrag) * 100
-        zinsprozentsatz = zinssatz * 100
-
-        # Kapitaldienstprüfung
-        if monatliche_rate > kapitaldienst:
-            laufzeit += 1
-            monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
-            st.warning(f"Die gewünschte Rate passt nicht in den aktuellen Kapitaldienst. Laufzeit wurde auf **{laufzeit} Jahre** angepasst!")
-
-        # Wunschrate-Abgleich
-        if monatliche_rate < wunschrate:
-            differenz = wunschrate - monatliche_rate
-            st.info(f"Deine Wunschrate ist **{differenz:.2f} €** unter der tatsächlichen Rate. Wow, wie cool! 🚀")
-
-        # RKV-Berechnung
-        rkv_aufschlag = kreditbetrag * 0.00273
-        monatliche_rate_mit_rkv = monatliche_rate + rkv_aufschlag
-
-        # Berechnung der Zins- und Tilgungsanteile
         zins_anteile, tilgungs_anteile = calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate)
+        monatliche_tilgungssaetze, jährliche_tilgungssaetze = calculate_tilgungssaetze(kreditbetrag, zinssatz, laufzeit, monatliche_rate)
 
-        # Gesamtzinsberechnung
         gesamtzins = sum(zins_anteile)
         gesamtaufwand = gesamtzins + kreditbetrag
 
@@ -99,39 +99,26 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         st.markdown("## 🏦 Ergebnisse")
         st.markdown(
             f"""
-            ### 1️⃣ Monatliche Rate (ohne RKV)
+            ### Monatliche Rate (ohne RKV)
             💰 **{monatliche_rate:.2f} €**
-            *Dies ist der Betrag, den der Kunde ohne Absicherung zahlen müsste.*
+            
+            ### Monatliche Rate (mit Restkreditversicherung)
+            📉 **{monatliche_rate + kreditbetrag * 0.00273:.2f} €**
 
-            ---
+            ### Zinssatz
+            🔍 **{zinssatz * 100:.2f}%**
 
-            ### 2️⃣ Monatliche Rate (mit Restkreditversicherung)
-            📉 **{monatliche_rate_mit_rkv:.2f} €**
-            *Mit Absicherung (RKV) steigt die monatliche Rate leicht an.*
+            ### Tilgungssätze
+            📊 **Anfänglicher Tilgungssatz (1. Monat): {monatliche_tilgungssaetze[0]:.2f}%**
+            📊 **Tilgungssatz im 1. Jahr: {jährliche_tilgungssaetze[0]:.2f}%**
+            📊 **Tilgungssatz im 2. Jahr: {jährliche_tilgungssaetze[1]:.2f}%**
+            📊 **Tilgungssatz im 3. Jahr: {jährliche_tilgungssaetze[2]:.2f}%**
 
-            ---
-
-            ### 3️⃣ Zinssatz
-            🔍 **{zinsprozentsatz:.2f}%**
-            *Dies ist der nominale Zinssatz, der für die gesamte Laufzeit gilt.*
-
-            ---
-
-            ### 4️⃣ Anfänglicher Tilgungssatz
-            📊 **{anfaenglicher_tilgungsprozentsatz:.2f}%**
-            *Der anfängliche Tilgungssatz zeigt, wie viel Prozent des Kreditbetrags im ersten Jahr zurückgezahlt werden.*
-
-            ---
-
-            ### 5️⃣ Gesamtaufwand (Kreditbetrag + Zinsen)
-            💸 **{gesamtaufwand:,.2f} €**
-            *Die Summe aller Zahlungen während der gesamten Laufzeit, inklusive Zinsen.*
-
-            ---
-
-            ### 6️⃣ Gesamter Zinsaufwand
+            ### Gesamter Zinsaufwand
             📉 **{gesamtzins:,.2f} €**
-            *Dies sind die Gesamtkosten durch Zinsen über die gesamte Laufzeit.*
+
+            ### Gesamtaufwand (Kreditbetrag + Zinsen)
+            💸 **{gesamtaufwand:,.2f} €**
             """
         )
 
@@ -145,6 +132,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
