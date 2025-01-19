@@ -58,6 +58,8 @@ if st.button("Berechnung starten"):
         restschuld = calculate_restschuld(kreditbetrag, zinssatz, laufzeit, zinsbindung)
         zins_anteil = kreditbetrag * (zinssatz / 12)
         tilgung_anteil = monatliche_rate - zins_anteil
+        anfaenglicher_tilgungsprozentsatz = (tilgung_anteil / kreditbetrag) * 100
+        zinsprozentsatz = zinssatz * 100
 
         # RKV-Berechnung
         rkv_aufschlag = kreditbetrag * 0.00273
@@ -69,30 +71,42 @@ if st.button("Berechnung starten"):
         st.markdown(f"📉 **Restschuld nach {zinsbindung} Jahren: {restschuld:,.2f} €**")
         st.markdown(f"💰 **Zinsanteil der monatlichen Rate: {zins_anteil:.2f} €**")
         st.markdown(f"💸 **Tilgungsanteil der monatlichen Rate: {tilgung_anteil:.2f} €**")
+        st.markdown(f"🔍 **Anfänglicher Zinssatz: {zinsprozentsatz:.2f}%**")
+        st.markdown(f"📊 **Anfänglicher Tilgungssatz: {anfaenglicher_tilgungsprozentsatz:.2f}%**")
 
-        # Visualisierung 1: Kreisdiagramm (Zins vs Tilgung)
+        # Visualisierung 1: Zins- und Tilgungsentwicklung
+        monate = list(range(1, laufzeit * 12 + 1))
+        zins_anteile = []
+        tilgungs_anteile = []
+        restschuld = kreditbetrag
+
+        for monat in monate:
+            zins = restschuld * (zinssatz / 12)
+            tilgung = monatliche_rate - zins
+            restschuld -= tilgung
+            zins_anteile.append(zins)
+            tilgungs_anteile.append(tilgung)
+
         fig1, ax1 = plt.subplots()
-        ax1.pie(
+        ax1.plot(monate, zins_anteile, label="Zinsanteil", color="red")
+        ax1.plot(monate, tilgungs_anteile, label="Tilgungsanteil", color="blue")
+        ax1.set_title("Entwicklung von Zins- und Tilgungsanteilen")
+        ax1.set_xlabel("Monate")
+        ax1.set_ylabel("Betrag (€)")
+        ax1.legend()
+        ax1.grid(True, linestyle="--", alpha=0.6)
+        st.pyplot(fig1)
+
+        # Visualisierung 2: Kreisdiagramm (Zins vs Tilgung)
+        fig2, ax2 = plt.subplots()
+        ax2.pie(
             [zins_anteil, tilgung_anteil],
             labels=["Zinsanteil", "Tilgungsanteil"],
             autopct="%1.1f%%",
             startangle=90,
             colors=["#ff9999", "#66b3ff"],
         )
-        ax1.axis("equal")  # Kreisdiagramm rund darstellen
-        st.pyplot(fig1)
-
-        # Visualisierung 2: Restschuldentwicklung während der Zinsbindungsfrist
-        monate = list(range(1, zinsbindung * 12 + 1))
-        restschulden = [
-            calculate_restschuld(kreditbetrag, zinssatz, laufzeit, m / 12) for m in monate
-        ]
-        fig2, ax2 = plt.subplots()
-        ax2.plot(monate, restschulden, color="green", label="Restschuld")
-        ax2.set_title(f"Restschuldentwicklung während {zinsbindung} Jahren")
-        ax2.set_xlabel("Monate")
-        ax2.set_ylabel("Restschuld (€)")
-        ax2.grid(True, linestyle="--", alpha=0.6)
-        ax2.legend()
+        ax2.axis("equal")  # Kreisdiagramm rund darstellen
         st.pyplot(fig2)
+
 
