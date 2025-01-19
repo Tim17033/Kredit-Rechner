@@ -87,9 +87,10 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("�
             if monatliche_rate > kapitaldienst:
                 st.error("❌ Selbst bei einer Laufzeit von 30 Jahren passt die Rate nicht in den Kapitaldienst.")
             elif laufzeit > original_laufzeit:
-                st.warning(
-                    f"⚠️ Die gewünschte Laufzeit wurde auf **{laufzeit} Jahre** verlängert, "
-                    f"damit die monatliche Rate in den Kapitaldienst passt."
+                st.markdown(
+                    f"<span style='color: red;'>⚠️ Die gewünschte Laufzeit wurde auf **{laufzeit} Jahre** verlängert, "
+                    f"damit die monatliche Rate in den Kapitaldienst passt.</span>",
+                    unsafe_allow_html=True
                 )
 
         zins_anteile, tilgungs_anteile = calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate)
@@ -98,7 +99,18 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("�
 
         # Vergleich der Wunschrate
         differenz = monatliche_rate - wunschrate
-        st.info(get_motivational_message(differenz, kapitaldienst))
+        if differenz < 0:  # Positive Nachricht in Grün
+            st.markdown(
+                f"<span style='color: green;'>✅ Die tatsächliche Rate ist **{abs(differenz):.2f} € niedriger** als Ihre Wunschrate. "
+                f"Eine großartige Nachricht für Ihr Budget! 💰</span>",
+                unsafe_allow_html=True
+            )
+        else:  # Ermutigende Nachricht in Gelb
+            st.markdown(
+                f"<span style='color: orange;'>⚠️ Die Rate liegt zwar **{differenz:.2f} € über** Ihrer Wunschrate, aber Sie schaffen das – der Kapitaldienst passt! 💪 "
+                f"Ein kleiner Schritt mehr bringt Sie sicher ans Ziel! 🚀</span>",
+                unsafe_allow_html=True
+            )
 
         # Ergebnisse übersichtlich darstellen
         st.markdown("## 📋 Ergebnisse")
@@ -136,6 +148,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("�
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
