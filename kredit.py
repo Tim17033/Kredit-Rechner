@@ -50,21 +50,30 @@ def calculate_restschuld(kreditbetrag, zinssatz, laufzeit, zinsbindung):
 
     return restschuld
 
-# UI-Design
+# Interaktive Eingaben
 st.title("📊 Kreditverkaufsrechner")
-st.markdown(
-    """
-    Willkommen beim Kreditverkaufsrechner! Berechnen Sie schnell und einfach die monatliche Rate für Ihren Kunden, 
-    inklusive der Zins- und Tilgungsanteile. 🚀✨
-    """
-)
 
-# Eingabefelder
+st.markdown("### Schritt 1: Finanzierungsbedarf eingeben")
 kreditbetrag = st.number_input("Finanzierungsbedarf (€):", min_value=2500, max_value=50000, step=100)
-laufzeit = st.number_input("Gewünschte Laufzeit (in Jahren):", min_value=1, max_value=20, step=1)
-zinsbindung = st.selectbox("Zinsbindungsfrist (in Jahren):", options=[5, 10])
-kapitaldienst = st.number_input("Aktueller Kapitaldienst (€):", min_value=0.0, step=50.0)
-rkv_option = st.radio("Möchten Sie eine Ratenkreditversicherung (RKV) hinzufügen?", options=["Ja", "Nein"])
+
+if kreditbetrag:
+    st.markdown("### Schritt 2: Laufzeit eingeben")
+    laufzeit = st.number_input("Gewünschte Laufzeit (in Jahren):", min_value=1, max_value=20, step=1)
+
+if kreditbetrag and laufzeit:
+    st.markdown("### Schritt 3: Zinsbindungsfrist auswählen")
+    zinsbindung = st.selectbox("Zinsbindungsfrist (in Jahren):", options=[5, 10])
+
+if kreditbetrag and laufzeit and zinsbindung:
+    st.markdown("### Schritt 4: Kapitaldienst eingeben")
+    kapitaldienst = st.number_input("Aktueller Kapitaldienst (€):", min_value=0.0, step=50.0)
+
+if kreditbetrag and laufzeit and zinsbindung and kapitaldienst:
+    st.markdown("### Schritt 5: Wunschrate eingeben")
+    wunschrate = st.number_input("Wunschrate (€):", min_value=0.0, step=50.0)
+
+    st.markdown("### Schritt 6: Möchten Sie eine Ratenkreditversicherung (RKV) hinzufügen?")
+    rkv_option = st.radio("RKV-Option:", options=["Ja", "Nein"])
 
 if st.button("Berechnung starten"):
     with st.spinner("Berechnung wird durchgeführt..."):
@@ -85,7 +94,13 @@ if st.button("Berechnung starten"):
         # Kapitaldienstprüfung
         if monatliche_rate > kapitaldienst:
             laufzeit += 1
-            st.warning("Die gewünschte Rate passt nicht in den aktuellen Kapitaldienst. Laufzeit wurde verlängert!")
+            monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
+            st.warning(f"Die gewünschte Rate passt nicht in den aktuellen Kapitaldienst. Laufzeit wurde auf **{laufzeit} Jahre** angepasst!")
+
+        # Wunschrate-Abgleich
+        if monatliche_rate < wunschrate:
+            differenz = wunschrate - monatliche_rate
+            st.info(f"Die tatsächliche monatliche Rate ist **{differenz:.2f} €** günstiger als Ihre Wunschrate. Perfekt für den Verkauf! 🚀")
 
         # RKV-Berechnung
         rkv_aufschlag = kreditbetrag * 0.00273
@@ -106,16 +121,17 @@ if st.button("Berechnung starten"):
             """
         )
 
-        # Visualisierung: Zins- und Tilgungsanteile als Balkendiagramm
-        fig, ax = plt.subplots(figsize=(10, 6))
-        x = np.arange(1, 13)  # Ersten 12 Monate
-        ax.bar(x, zins_anteile[:12], label="Zinsen", color="gray", alpha=0.7)
-        ax.bar(x, tilgungs_anteile[:12], bottom=zins_anteile[:12], label="Tilgung", color="orange", alpha=0.9)
-        ax.set_title("Zins- und Tilgungsanteile im ersten Jahr", fontsize=16)
+        # Visualisierung: Zins- und Tilgungsanteile über die gesamte Laufzeit
+        fig, ax = plt.subplots(figsize=(8, 4))
+        x = np.arange(1, len(zins_anteile) + 1)  # Gesamte Laufzeit
+        ax.bar(x, zins_anteile, label="Zinsen", color="gray", alpha=0.7)
+        ax.bar(x, tilgungs_anteile, bottom=zins_anteile, label="Tilgung", color="orange", alpha=0.9)
+        ax.set_title("Zins- und Tilgungsanteile über die gesamte Laufzeit", fontsize=14)
         ax.set_xlabel("Monat", fontsize=12)
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
