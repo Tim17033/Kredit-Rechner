@@ -45,34 +45,35 @@ def get_motivational_message(differenz):
         return f"Die tatsächliche Rate liegt **{differenz:.2f} € über** Ihrer Wunschrate. Eine kleine Differenz, die Ihnen langfristig viel Sicherheit bringt!"
 
 # Interaktive Eingaben
-st.title("📊 Kreditverkaufsrechner")
+st.title("💳 Kreditrechner")
+st.subheader("📈 Berechnen Sie Ihre optimale monatliche Rate und gewinnen Sie einen klaren Überblick über Zinsen und Tilgung!")
 
-st.markdown("### Schritt 1: Finanzierungsbedarf eingeben")
-kreditbetrag = st.number_input("Finanzierungsbedarf (€):", min_value=2500, max_value=50000, step=100)
+st.markdown("### 🛠️ Schritt 1: Finanzierungsbedarf eingeben")
+kreditbetrag = st.number_input("💰 Finanzierungsbedarf (€):", min_value=2500, max_value=50000, step=100)
 
 if kreditbetrag:
-    st.markdown("### Schritt 2: Laufzeit eingeben")
-    laufzeit = st.number_input("Gewünschte Laufzeit (in Jahren):", min_value=1, max_value=20, step=1)
+    st.markdown("### 🛠️ Schritt 2: Laufzeit eingeben")
+    laufzeit = st.number_input("⏳ Gewünschte Laufzeit (in Jahren):", min_value=1, max_value=20, step=1)
 
 if kreditbetrag and laufzeit:
-    st.markdown("### Schritt 3: Kapitaldienst eingeben")
-    kapitaldienst = st.number_input("Aktueller Kapitaldienst (€):", min_value=0.0, step=50.0)
+    st.markdown("### 🛠️ Schritt 3: Kapitaldienst eingeben")
+    kapitaldienst = st.number_input("🏦 Aktueller Kapitaldienst (€):", min_value=0.0, step=50.0)
 
 if kreditbetrag and laufzeit and kapitaldienst:
-    st.markdown("### Schritt 4: Wunschrate eingeben")
-    wunschrate = st.number_input("Wunschrate (€):", min_value=0.0, step=50.0)
+    st.markdown("### 🛠️ Schritt 4: Wunschrate eingeben")
+    wunschrate = st.number_input("🎯 Wunschrate (€):", min_value=0.0, step=50.0)
 
-    st.markdown("### Schritt 5: Möchten Sie eine Restkreditversicherung (RKV) hinzufügen?")
-    rkv_option = st.radio("RKV-Option:", options=["Ja", "Nein"])
+    st.markdown("### 🛠️ Schritt 5: Möchten Sie eine Restkreditversicherung (RKV) hinzufügen?")
+    rkv_option = st.radio("🔒 RKV-Option:", options=["Ja", "Nein"])
 
 # Berechnung erst starten, wenn alle Eingaben abgeschlossen sind
-if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Berechnung starten"):
-    with st.spinner("Berechnung wird durchgeführt..."):
+if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("📊 Berechnung starten"):
+    with st.spinner("🔄 Berechnung wird durchgeführt..."):
         time.sleep(2)  # Simulierte Ladezeit
 
     zinssatz = get_interest_rate(kreditbetrag)
     if zinssatz is None:
-        st.error("Bitte geben Sie einen Kreditbetrag zwischen 2.500 € und 50.000 € ein.")
+        st.error("❌ Bitte geben Sie einen Kreditbetrag zwischen 2.500 € und 50.000 € ein.")
     else:
         # Berechnungen
         monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
@@ -84,10 +85,10 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
                 laufzeit += 1
                 monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
             if monatliche_rate > kapitaldienst:
-                st.error("Selbst bei einer Laufzeit von 30 Jahren passt die Rate nicht in den Kapitaldienst.")
+                st.error("❌ Selbst bei einer Laufzeit von 30 Jahren passt die Rate nicht in den Kapitaldienst.")
             elif laufzeit > original_laufzeit:
                 st.warning(
-                    f"Die gewünschte Laufzeit wurde auf **{laufzeit} Jahre** verlängert, "
+                    f"⚠️ Die gewünschte Laufzeit wurde auf **{laufzeit} Jahre** verlängert, "
                     f"damit die monatliche Rate in den Kapitaldienst passt."
                 )
 
@@ -100,28 +101,28 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         st.info(get_motivational_message(differenz))
 
         # Ergebnisse übersichtlich darstellen
-        st.markdown("## 🏦 Ergebnisse")
+        st.markdown("## 📋 Ergebnisse")
         st.markdown(
             f"""
-            ### Monatliche Rate (ohne RKV)
-            💰 **{monatliche_rate:.2f} €**
-            *Das ist der Betrag, den Sie monatlich ohne zusätzliche Absicherung zahlen würden.*
+            ### 💵 Monatliche Rate (ohne RKV)
+            **{monatliche_rate:.2f} €**
+            *Der Betrag, den Sie monatlich ohne zusätzliche Absicherung zahlen würden.*
 
-            ### Monatliche Rate (mit Restkreditversicherung)
-            📉 **{monatliche_rate + kreditbetrag * 0.00273:.2f} €**
+            ### 🔒 Monatliche Rate (mit Restkreditversicherung)
+            **{monatliche_rate + kreditbetrag * 0.00273:.2f} €**
             *Mit zusätzlicher Absicherung (RKV) erhöht sich die monatliche Rate leicht.*
 
-            ### Zinssatz
-            🔍 **{zinssatz * 100:.2f}%**
-            *Der Zinssatz bleibt über die Laufzeit konstant.*
+            ### 🔍 Zinssatz
+            **{zinssatz * 100:.2f}%**
+            *Der Zinssatz bleibt über die gesamte Laufzeit konstant.*
 
-            ### Gesamter Zinsaufwand
-            📉 **{gesamtzins:,.2f} €**
-            *Das sind die gesamten Kosten, die durch Zinsen während der Laufzeit entstehen.*
+            ### 📉 Gesamter Zinsaufwand
+            **{gesamtzins:,.2f} €**
+            *Die gesamten Kosten durch Zinsen während der Laufzeit.*
 
-            ### Gesamtaufwand (Kreditbetrag + Zinsen)
-            💸 **{gesamtaufwand:,.2f} €**
-            *Das ist die Gesamtsumme aller Zahlungen während der Laufzeit.*
+            ### 💸 Gesamtaufwand (Kreditbetrag + Zinsen)
+            **{gesamtaufwand:,.2f} €**
+            *Die Gesamtsumme aller Zahlungen während der Laufzeit.*
             """
         )
 
@@ -135,6 +136,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
