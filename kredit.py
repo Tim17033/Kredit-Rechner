@@ -1,6 +1,6 @@
 import streamlit as st
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 import time
 
 # Zinssatz basierend auf dem Kreditbetrag
@@ -21,28 +21,33 @@ def calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit):
     annuitaet = kreditbetrag * (r * (1 + r)**n) / ((1 + r)**n - 1)
     return annuitaet
 
-# Berechnung der Restschuld nach Zinsbindungsfrist
-def calculate_restschuld(kreditbetrag, zinssatz, laufzeit, zinsbindung):
-    r = zinssatz / 12
-    n = laufzeit * 12
-    zinsbindung_monate = zinsbindung * 12
-    restschuld = kreditbetrag * ((1 + r)**n - (1 + r)**zinsbindung_monate) / ((1 + r)**n - 1)
-    return restschuld
+# Berechnung der Zins- und Tilgungsanteile über die Laufzeit
+def calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
+    zins_anteile = []
+    tilgungs_anteile = []
+    restschuld = kreditbetrag
+
+    for _ in range(laufzeit * 12):
+        zins = restschuld * (zinssatz / 12)
+        tilgung = monatliche_rate - zins
+        restschuld -= tilgung
+        zins_anteile.append(zins)
+        tilgungs_anteile.append(tilgung)
+
+    return zins_anteile, tilgungs_anteile
 
 # UI-Design
 st.title("📊 Kreditverkaufsrechner")
 st.markdown(
     """
     Willkommen beim Kreditverkaufsrechner! Berechnen Sie schnell und einfach die monatliche Rate für Ihren Kunden, 
-    inklusive der Aufschlüsselung in Zins und Tilgung. 🚀✨
+    inklusive der Zins- und Tilgungsanteile. 🚀✨
     """
 )
 
 # Eingabefelder
 kreditbetrag = st.number_input("Finanzierungsbedarf (€):", min_value=2500, max_value=50000, step=100)
 laufzeit = st.number_input("Gewünschte Laufzeit (in Jahren):", min_value=1, max_value=20, step=1)
-zinsbindung = st.selectbox("Zinsbindungsfrist:", options=[5, 10])
-kapitaldienst = st.number_input("Aktueller Kapitaldienst (€):", min_value=0.0, step=50.0)
 rkv_option = st.radio("Möchten Sie eine Ratenkreditversicherung (RKV) hinzufügen?", options=["Ja", "Nein"])
 
 if st.button("Berechnung starten"):
@@ -55,7 +60,6 @@ if st.button("Berechnung starten"):
     else:
         # Berechnungen
         monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
-        restschuld = calculate_restschuld(kreditbetrag, zinssatz, laufzeit, zinsbindung)
         zins_anteil = kreditbetrag * (zinssatz / 12)
         tilgung_anteil = monatliche_rate - zins_anteil
         anfaenglicher_tilgungsprozentsatz = (tilgung_anteil / kreditbetrag) * 100
@@ -65,40 +69,31 @@ if st.button("Berechnung starten"):
         rkv_aufschlag = kreditbetrag * 0.00273
         monatliche_rate_mit_rkv = monatliche_rate + rkv_aufschlag
 
-        # Ausgabe der Ergebnisse
-        st.success(f"🎉 Monatliche Rate: {monatliche_rate:.2f} €")
-        st.markdown(f"💼 **Monatliche Rate (mit RKV): {monatliche_rate_mit_rkv:.2f} €**")
-        st.markdown(f"📉 **Restschuld nach {zinsbindung} Jahren: {restschuld:,.2f} €**")
-        st.markdown(f"💰 **Zinsanteil der monatlichen Rate: {zins_anteil:.2f} €**")
-        st.markdown(f"💸 **Tilgungsanteil der monatlichen Rate: {tilgung_anteil:.2f} €**")
-        st.markdown(f"🔍 **Anfänglicher Zinssatz: {zinsprozentsatz:.2f}%**")
-        st.markdown(f"📊 **Anfänglicher Tilgungssatz: {anfaenglicher_tilgungsprozentsatz:.2f}%**")
+        # Berechnung der Zins- und Tilgungsanteile
+        zins_anteile, tilgungs_anteile = calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate)
 
-        # Visualisierung: Verlauf von Zins- und Tilgungsanteilen
-        monate = list(range(1, laufzeit * 12 + 1))
-        zins_anteile = []
-        tilgungs_anteile = []
-        restschuld = kreditbetrag
+        # Besondere Hervorhebung der Ergebnisse
+        st.markdown(
+            f"""
+            ## 🏦 Ergebnisse
+            - 💰 **Monatliche Rate (ohne RKV): {monatliche_rate:.2f} €**
+            - 📉 **Monatliche Rate (mit RKV): {monatliche_rate_mit_rkv:.2f} €**
+            - 🔍 **Anfänglicher Zinssatz: {zinsprozentsatz:.2f}%**
+            - 📊 **Anfänglicher Tilgungssatz: {anfaenglicher_tilgungsprozentsatz:.2f}%**
+            """
+        )
 
-        for monat in monate:
-            zins = restschuld * (zinssatz / 12)
-            tilgung = monatliche_rate - zins
-            restschuld -= tilgung
-            zins_anteile.append(zins)
-            tilgungs_anteile.append(tilgung)
-
-        # Grafische Darstellung: Zins- und Tilgungsanteile als Fläche
+        # Visualisierung: Zins- und Tilgungsanteile als Balkendiagramm
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(monate, zins_anteile, label="Zinsanteil", color="red", linewidth=2)
-        ax.plot(monate, tilgungs_anteile, label="Tilgungsanteil", color="blue", linewidth=2)
-        ax.fill_between(monate, 0, zins_anteile, color="red", alpha=0.3, label="Zinsen")
-        ax.fill_between(monate, 0, tilgungs_anteile, color="blue", alpha=0.3, label="Tilgung")
-        ax.set_title("Entwicklung von Zins- und Tilgungsanteilen über die Laufzeit", fontsize=16)
-        ax.set_xlabel("Monate", fontsize=12)
+        x = np.arange(1, 13)  # Ersten 12 Monate
+        ax.bar(x, zins_anteile[:12], label="Zinsen", color="gray", alpha=0.7)
+        ax.bar(x, tilgungs_anteile[:12], bottom=zins_anteile[:12], label="Tilgung", color="orange", alpha=0.9)
+        ax.set_title("Zins- und Tilgungsanteile im ersten Jahr", fontsize=16)
+        ax.set_xlabel("Monat", fontsize=12)
         ax.set_ylabel("Betrag (€)", fontsize=12)
-        ax.grid(True, linestyle="--", alpha=0.6)
-        ax.legend(fontsize=12)
+        ax.legend()
         st.pyplot(fig)
+
 
 
 
