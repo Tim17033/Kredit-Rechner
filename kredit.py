@@ -28,7 +28,7 @@ def calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
     restschuld = kreditbetrag
 
     for _ in range(laufzeit * 12):
-        zins = restschuld * (zins_pro_jahr / 12)
+        zins = restschuld * (zinssatz / 12)  # Zinsen basierend auf jährlichem Zinssatz
         tilgung = monatliche_rate - zins
         restschuld -= tilgung
         zins_anteile.append(zins)
@@ -45,7 +45,7 @@ def calculate_tilgungssaetze(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
     for jahr in range(1, laufzeit + 1):
         jährliche_tilgung_summe = 0
         for monat in range(12):  # 12 Monate pro Jahr
-            zins = restschuld * (zins_pro_jahr / 12)
+            zins = restschuld * (zinssatz / 12)  # Zinsen basierend auf jährlichem Zinssatz
             tilgung = monatliche_rate - zins
             restschuld -= tilgung
             jährliche_tilgung_summe += tilgung
@@ -132,6 +132,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
