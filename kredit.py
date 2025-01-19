@@ -91,6 +91,10 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         # Berechnung der Zins- und Tilgungsanteile
         zins_anteile, tilgungs_anteile = calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate)
 
+        # Gesamtzinsberechnung
+        gesamtzins = sum(zins_anteile)
+        gesamtaufwand = gesamtzins + kreditbetrag
+
         # Besondere Hervorhebung der Ergebnisse
         st.markdown(
             f"""
@@ -99,11 +103,13 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
             - 📉 **Monatliche Rate (mit RKV): {monatliche_rate_mit_rkv:.2f} €**
             - 🔍 **Anfänglicher Zinssatz: {zinsprozentsatz:.2f}%**
             - 📊 **Anfänglicher Tilgungssatz: {anfaenglicher_tilgungsprozentsatz:.2f}%**
+            - 📉 **Gesamter Zinsaufwand über die Laufzeit: {gesamtzins:,.2f} €**
+            - 💸 **Gesamtaufwand (Kreditbetrag + Zinsen): {gesamtaufwand:,.2f} €**
             """
         )
 
         # Visualisierung: Zins- und Tilgungsanteile über die gesamte Laufzeit
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig, ax = plt.subplots(figsize=(10, 4))
         x = np.arange(1, len(zins_anteile) + 1)  # Gesamte Laufzeit
         ax.bar(x, zins_anteile, label="Zinsen", color="gray", alpha=0.7)
         ax.bar(x, tilgungs_anteile, bottom=zins_anteile, label="Tilgung", color="orange", alpha=0.9)
@@ -112,6 +118,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
