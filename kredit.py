@@ -54,7 +54,7 @@ if kreditbetrag and laufzeit and kapitaldienst:
     st.markdown("### Schritt 4: Wunschrate eingeben")
     wunschrate = st.number_input("Wunschrate (€):", min_value=0.0, step=50.0)
 
-    st.markdown("### Schritt 5: Möchten Sie eine Ratenkreditversicherung (RKV) hinzufügen?")
+    st.markdown("### Schritt 5: Möchten Sie eine Restkreditversicherung (RKV) hinzufügen?")
     rkv_option = st.radio("RKV-Option:", options=["Ja", "Nein"])
 
 # Berechnung erst starten, wenn alle Eingaben abgeschlossen sind
@@ -95,16 +95,43 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         gesamtzins = sum(zins_anteile)
         gesamtaufwand = gesamtzins + kreditbetrag
 
-        # Besondere Hervorhebung der Ergebnisse
+        # Ergebnisse übersichtlich darstellen
+        st.markdown("## 🏦 Ergebnisse")
         st.markdown(
             f"""
-            ## 🏦 Ergebnisse
-            - 💰 **Monatliche Rate (ohne RKV): {monatliche_rate:.2f} €**
-            - 📉 **Monatliche Rate (mit RKV): {monatliche_rate_mit_rkv:.2f} €**
-            - 🔍 **Anfänglicher Zinssatz: {zinsprozentsatz:.2f}%**
-            - 📊 **Anfänglicher Tilgungssatz: {anfaenglicher_tilgungsprozentsatz:.2f}%**
-            - 📉 **Gesamter Zinsaufwand über die Laufzeit: {gesamtzins:,.2f} €**
-            - 💸 **Gesamtaufwand (Kreditbetrag + Zinsen): {gesamtaufwand:,.2f} €**
+            ### 1️⃣ Monatliche Rate (ohne RKV)
+            💰 **{monatliche_rate:.2f} €**
+            *Dies ist der Betrag, den der Kunde ohne Absicherung zahlen müsste.*
+
+            ---
+
+            ### 2️⃣ Monatliche Rate (mit Restkreditversicherung)
+            📉 **{monatliche_rate_mit_rkv:.2f} €**
+            *Mit Absicherung (RKV) steigt die monatliche Rate leicht an.*
+
+            ---
+
+            ### 3️⃣ Zinssatz
+            🔍 **{zinsprozentsatz:.2f}%**
+            *Dies ist der nominale Zinssatz, der für die gesamte Laufzeit gilt.*
+
+            ---
+
+            ### 4️⃣ Anfänglicher Tilgungssatz
+            📊 **{anfaenglicher_tilgungsprozentsatz:.2f}%**
+            *Der anfängliche Tilgungssatz zeigt, wie viel Prozent des Kreditbetrags im ersten Jahr zurückgezahlt werden.*
+
+            ---
+
+            ### 5️⃣ Gesamtaufwand (Kreditbetrag + Zinsen)
+            💸 **{gesamtaufwand:,.2f} €**
+            *Die Summe aller Zahlungen während der gesamten Laufzeit, inklusive Zinsen.*
+
+            ---
+
+            ### 6️⃣ Gesamter Zinsaufwand
+            📉 **{gesamtzins:,.2f} €**
+            *Dies sind die Gesamtkosten durch Zinsen über die gesamte Laufzeit.*
             """
         )
 
@@ -118,6 +145,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
