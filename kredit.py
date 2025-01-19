@@ -37,12 +37,12 @@ def calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
 
     return zins_anteile, tilgungs_anteile
 
-# Funktion zur Auswahl einer motivierenden Nachricht
-def get_motivational_message(differenz):
+# Funktion zur Auswahl einer Nachricht
+def get_motivational_message(differenz, kapitaldienst):
     if differenz < 0:  # Wunschrate ist höher
-        return f"Die tatsächliche Rate ist **{abs(differenz):.2f} € niedriger** als Ihre Wunschrate. Eine großartige Nachricht für Ihr Budget!"
+        return f"Die tatsächliche Rate ist **{abs(differenz):.2f} € niedriger** als Ihre Wunschrate. Eine großartige Nachricht für Ihr Budget! 💰"
     else:  # Wunschrate ist niedriger
-        return f"Die tatsächliche Rate liegt **{differenz:.2f} € über** Ihrer Wunschrate. Eine kleine Differenz, die Ihnen langfristig viel Sicherheit bringt!"
+        return f"Die Rate liegt zwar **{differenz:.2f} € über** Ihrer Wunschrate, aber Sie schaffen das – der Kapitaldienst passt! 💪 Ein kleiner Schritt mehr bringt Sie sicher ans Ziel! 🚀"
 
 # Interaktive Eingaben
 st.title("💳 Kreditrechner")
@@ -98,7 +98,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("�
 
         # Vergleich der Wunschrate
         differenz = monatliche_rate - wunschrate
-        st.info(get_motivational_message(differenz))
+        st.info(get_motivational_message(differenz, kapitaldienst))
 
         # Ergebnisse übersichtlich darstellen
         st.markdown("## 📋 Ergebnisse")
@@ -136,6 +136,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("�
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
