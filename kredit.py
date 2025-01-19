@@ -37,7 +37,7 @@ def calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
 
     return zins_anteile, tilgungs_anteile
 
-# Funktion zur Auswahl eines Verstärkers
+# Funktion zur Auswahl eines Verstärkers für Wunschrate unter der tatsächlichen Rate
 def get_motivational_message():
     messages = [
         "Wow, das ist eine großartige Gelegenheit, langfristig zu sparen! 🚀",
@@ -45,6 +45,17 @@ def get_motivational_message():
         "Das klingt nach einer Entscheidung, die sich lohnt! 💪",
         "Dieser Kredit bringt Sie einen großen Schritt weiter zu Ihrem Ziel! ✨",
         "Was für eine gute Nachricht! Ihre Rate passt perfekt zu Ihren Zielen! ✅"
+    ]
+    return random.choice(messages)
+
+# Funktion zur Auswahl eines Verstärkers für Wunschrate leicht über der tatsächlichen Rate
+def get_encouraging_message():
+    messages = [
+        "Keine Sorge, die Rate liegt nur leicht über Ihrer Wunschrate. Sie schaffen das! 💪",
+        "Manchmal lohnt sich ein kleiner Schritt mehr für ein großes Ziel! 🚀",
+        "Das Ziel ist nah, diese kleine Differenz ist machbar! 🌟",
+        "Ein bisschen mehr jetzt bringt langfristige Sicherheit! 💡",
+        "Sie sind auf einem tollen Weg – bleiben Sie dran! ✅"
     ]
     return random.choice(messages)
 
@@ -81,17 +92,19 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         # Berechnungen
         monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
 
-        # Kapitaldienstprüfung: Verlängerung der Laufzeit
-        while monatliche_rate > kapitaldienst and laufzeit < 30:
-            laufzeit += 1
-            monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
+        # Laufzeitverlängerung nur bei zu hohem Kapitaldienst
         if monatliche_rate > kapitaldienst:
-            st.error("Selbst bei einer Laufzeit von 30 Jahren passt die Rate nicht in den Kapitaldienst.")
-        elif laufzeit > 1:
-            st.warning(
-                f"Die gewünschte Laufzeit wurde auf **{laufzeit} Jahre** verlängert, "
-                f"damit die monatliche Rate in den Kapitaldienst passt."
-            )
+            original_laufzeit = laufzeit
+            while monatliche_rate > kapitaldienst and laufzeit < 30:
+                laufzeit += 1
+                monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
+            if monatliche_rate > kapitaldienst:
+                st.error("Selbst bei einer Laufzeit von 30 Jahren passt die Rate nicht in den Kapitaldienst.")
+            elif laufzeit > original_laufzeit:
+                st.warning(
+                    f"Die gewünschte Laufzeit wurde auf **{laufzeit} Jahre** verlängert, "
+                    f"damit die monatliche Rate in den Kapitaldienst passt."
+                )
 
         zins_anteile, tilgungs_anteile = calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate)
         gesamtzins = sum(zins_anteile)
@@ -103,6 +116,12 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
             st.success(
                 f"Deine Wunschrate ist **{differenz:.2f} €** höher als die tatsächliche Rate. "
                 f"{get_motivational_message()}"
+            )
+        elif monatliche_rate > wunschrate:
+            differenz = monatliche_rate - wunschrate
+            st.info(
+                f"Die monatliche Rate liegt **{differenz:.2f} €** über Ihrer Wunschrate. "
+                f"{get_encouraging_message()}"
             )
 
         # Ergebnisse übersichtlich darstellen
@@ -141,6 +160,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
