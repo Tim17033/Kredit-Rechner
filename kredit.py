@@ -36,20 +36,6 @@ def calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
 
     return zins_anteile, tilgungs_anteile
 
-# Berechnung der Restschuld nach Zinsbindungsfrist
-def calculate_restschuld(kreditbetrag, zinssatz, laufzeit, zinsbindung):
-    r = zinssatz / 12
-    zinsbindung_monate = zinsbindung * 12
-    restschuld = kreditbetrag
-    monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
-
-    for monat in range(zinsbindung_monate):
-        zins = restschuld * r
-        tilgung = monatliche_rate - zins
-        restschuld -= tilgung
-
-    return restschuld
-
 # Interaktive Eingaben
 st.title("📊 Kreditverkaufsrechner")
 
@@ -61,21 +47,18 @@ if kreditbetrag:
     laufzeit = st.number_input("Gewünschte Laufzeit (in Jahren):", min_value=1, max_value=20, step=1)
 
 if kreditbetrag and laufzeit:
-    st.markdown("### Schritt 3: Zinsbindungsfrist auswählen")
-    zinsbindung = st.selectbox("Zinsbindungsfrist (in Jahren):", options=[5, 10])
-
-if kreditbetrag and laufzeit and zinsbindung:
-    st.markdown("### Schritt 4: Kapitaldienst eingeben")
+    st.markdown("### Schritt 3: Kapitaldienst eingeben")
     kapitaldienst = st.number_input("Aktueller Kapitaldienst (€):", min_value=0.0, step=50.0)
 
-if kreditbetrag and laufzeit and zinsbindung and kapitaldienst:
-    st.markdown("### Schritt 5: Wunschrate eingeben")
+if kreditbetrag and laufzeit and kapitaldienst:
+    st.markdown("### Schritt 4: Wunschrate eingeben")
     wunschrate = st.number_input("Wunschrate (€):", min_value=0.0, step=50.0)
 
-    st.markdown("### Schritt 6: Möchten Sie eine Ratenkreditversicherung (RKV) hinzufügen?")
+    st.markdown("### Schritt 5: Möchten Sie eine Ratenkreditversicherung (RKV) hinzufügen?")
     rkv_option = st.radio("RKV-Option:", options=["Ja", "Nein"])
 
-if st.button("Berechnung starten"):
+# Berechnung erst starten, wenn alle Eingaben abgeschlossen sind
+if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Berechnung starten"):
     with st.spinner("Berechnung wird durchgeführt..."):
         time.sleep(2)  # Simulierte Ladezeit
 
@@ -85,7 +68,6 @@ if st.button("Berechnung starten"):
     else:
         # Berechnungen
         monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
-        restschuld = calculate_restschuld(kreditbetrag, zinssatz, laufzeit, zinsbindung)
         zins_anteil = kreditbetrag * (zinssatz / 12)
         tilgung_anteil = monatliche_rate - zins_anteil
         anfaenglicher_tilgungsprozentsatz = (tilgung_anteil / kreditbetrag) * 100
@@ -100,7 +82,7 @@ if st.button("Berechnung starten"):
         # Wunschrate-Abgleich
         if monatliche_rate < wunschrate:
             differenz = wunschrate - monatliche_rate
-            st.info(f"Die tatsächliche monatliche Rate ist **{differenz:.2f} €** günstiger als Ihre Wunschrate. Perfekt für den Verkauf! 🚀")
+            st.info(f"Deine Wunschrate ist **{differenz:.2f} €** unter der tatsächlichen Rate. Wow, wie cool! 🚀")
 
         # RKV-Berechnung
         rkv_aufschlag = kreditbetrag * 0.00273
@@ -117,7 +99,6 @@ if st.button("Berechnung starten"):
             - 📉 **Monatliche Rate (mit RKV): {monatliche_rate_mit_rkv:.2f} €**
             - 🔍 **Anfänglicher Zinssatz: {zinsprozentsatz:.2f}%**
             - 📊 **Anfänglicher Tilgungssatz: {anfaenglicher_tilgungsprozentsatz:.2f}%**
-            - 📉 **Restschuld nach {zinsbindung} Jahren: {restschuld:,.2f} €**
             """
         )
 
@@ -131,6 +112,7 @@ if st.button("Berechnung starten"):
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
