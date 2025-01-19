@@ -37,20 +37,6 @@ def calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
 
     return zins_anteile, tilgungs_anteile
 
-# Berechnung der monatlichen Tilgungssätze
-def calculate_monthly_tilgungssaetze(kreditbetrag, zinssatz, monatliche_rate):
-    restschuld = kreditbetrag
-    monatliche_tilgungssaetze = []
-
-    for _ in range(3):  # Nur die ersten drei Monate
-        zins = restschuld * (zinssatz / 12)
-        tilgung = monatliche_rate - zins
-        restschuld -= tilgung
-        monatliche_tilgungssatz = (tilgung / kreditbetrag) * 100
-        monatliche_tilgungssaetze.append(monatliche_tilgungssatz)
-
-    return monatliche_tilgungssaetze
-
 # Funktion zur Auswahl eines Verstärkers
 def get_motivational_message():
     messages = [
@@ -94,9 +80,20 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
     else:
         # Berechnungen
         monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
-        zins_anteile, tilgungs_anteile = calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate)
-        monatliche_tilgungssaetze = calculate_monthly_tilgungssaetze(kreditbetrag, zinssatz, monatliche_rate)
 
+        # Kapitaldienstprüfung: Verlängerung der Laufzeit
+        while monatliche_rate > kapitaldienst and laufzeit < 30:
+            laufzeit += 1
+            monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
+        if monatliche_rate > kapitaldienst:
+            st.error("Selbst bei einer Laufzeit von 30 Jahren passt die Rate nicht in den Kapitaldienst.")
+        elif laufzeit > 1:
+            st.warning(
+                f"Die gewünschte Laufzeit wurde auf **{laufzeit} Jahre** verlängert, "
+                f"damit die monatliche Rate in den Kapitaldienst passt."
+            )
+
+        zins_anteile, tilgungs_anteile = calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate)
         gesamtzins = sum(zins_anteile)
         gesamtaufwand = gesamtzins + kreditbetrag
 
@@ -124,26 +121,6 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
             🔍 **{zinssatz * 100:.2f}%**
             *Der Zinssatz bleibt über die Laufzeit konstant.*
 
-            ### Tilgungssätze
-            📊 **Anfänglicher Tilgungssatz (1. Monat): {monatliche_tilgungssaetze[0]:.2f}%**
-            *Im ersten Monat wird ein kleiner Anteil des Kreditbetrags getilgt.*
-
-            ---
-            #### Prognose der Tilgungssätze für die nächsten drei Monate:
-            """
-        )
-
-        # Visualisierung: Tilgungssätze für die ersten drei Monate
-        fig, ax = plt.subplots(figsize=(6, 3))
-        monate = ["1. Monat", "2. Monat", "3. Monat"]
-        ax.bar(monate, monatliche_tilgungssaetze, color="orange", alpha=0.8)
-        ax.set_title("Entwicklung der Tilgungssätze", fontsize=12)
-        ax.set_ylabel("Tilgungssatz (%)", fontsize=10)
-        st.pyplot(fig)
-
-        # Weitere Ergebnisse
-        st.markdown(
-            f"""
             ### Gesamter Zinsaufwand
             📉 **{gesamtzins:,.2f} €**
             *Das sind die gesamten Kosten, die durch Zinsen während der Laufzeit entstehen.*
@@ -153,6 +130,18 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
             *Das ist die Gesamtsumme aller Zahlungen während der Laufzeit.*
             """
         )
+
+        # Visualisierung: Zins- und Tilgungsanteile über die gesamte Laufzeit
+        fig, ax = plt.subplots(figsize=(10, 4))
+        x = np.arange(1, len(zins_anteile) + 1)  # Gesamte Laufzeit
+        ax.bar(x, zins_anteile, label="Zinsen", color="gray", alpha=0.7)
+        ax.bar(x, tilgungs_anteile, bottom=zins_anteile, label="Tilgung", color="orange", alpha=0.9)
+        ax.set_title("Zins- und Tilgungsanteile über die gesamte Laufzeit", fontsize=14)
+        ax.set_xlabel("Monat", fontsize=12)
+        ax.set_ylabel("Betrag (€)", fontsize=12)
+        ax.legend()
+        st.pyplot(fig)
+
 
 
 
