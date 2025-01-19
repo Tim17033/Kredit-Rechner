@@ -37,27 +37,12 @@ def calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
 
     return zins_anteile, tilgungs_anteile
 
-# Funktion zur Auswahl eines Verstärkers für Wunschrate unter der tatsächlichen Rate
-def get_motivational_message():
-    messages = [
-        "Wow, das ist eine großartige Gelegenheit, langfristig zu sparen! 🚀",
-        "Mit dieser Rate sind Sie auf dem besten Weg zu einer sicheren Zukunft! 🌟",
-        "Das klingt nach einer Entscheidung, die sich lohnt! 💪",
-        "Dieser Kredit bringt Sie einen großen Schritt weiter zu Ihrem Ziel! ✨",
-        "Was für eine gute Nachricht! Ihre Rate passt perfekt zu Ihren Zielen! ✅"
-    ]
-    return random.choice(messages)
-
-# Funktion zur Auswahl eines Verstärkers für Wunschrate leicht über der tatsächlichen Rate
-def get_encouraging_message():
-    messages = [
-        "Keine Sorge, die Rate liegt nur leicht über Ihrer Wunschrate. Sie schaffen das! 💪",
-        "Manchmal lohnt sich ein kleiner Schritt mehr für ein großes Ziel! 🚀",
-        "Das Ziel ist nah, diese kleine Differenz ist machbar! 🌟",
-        "Ein bisschen mehr jetzt bringt langfristige Sicherheit! 💡",
-        "Sie sind auf einem tollen Weg – bleiben Sie dran! ✅"
-    ]
-    return random.choice(messages)
+# Funktion zur Auswahl einer motivierenden Nachricht
+def get_motivational_message(differenz):
+    if differenz < 0:  # Wunschrate ist höher
+        return f"Die tatsächliche Rate ist **{abs(differenz):.2f} € niedriger** als Ihre Wunschrate. Eine großartige Nachricht für Ihr Budget!"
+    else:  # Wunschrate ist niedriger
+        return f"Die tatsächliche Rate liegt **{differenz:.2f} € über** Ihrer Wunschrate. Eine kleine Differenz, die Ihnen langfristig viel Sicherheit bringt!"
 
 # Interaktive Eingaben
 st.title("📊 Kreditverkaufsrechner")
@@ -111,18 +96,8 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         gesamtaufwand = gesamtzins + kreditbetrag
 
         # Vergleich der Wunschrate
-        if monatliche_rate < wunschrate:
-            differenz = wunschrate - monatliche_rate
-            st.success(
-                f"Deine Wunschrate ist **{differenz:.2f} €** höher als die tatsächliche Rate. "
-                f"{get_motivational_message()}"
-            )
-        elif monatliche_rate > wunschrate:
-            differenz = monatliche_rate - wunschrate
-            st.info(
-                f"Die monatliche Rate liegt **{differenz:.2f} €** über Ihrer Wunschrate. "
-                f"{get_encouraging_message()}"
-            )
+        differenz = monatliche_rate - wunschrate
+        st.info(get_motivational_message(differenz))
 
         # Ergebnisse übersichtlich darstellen
         st.markdown("## 🏦 Ergebnisse")
@@ -160,6 +135,7 @@ if kreditbetrag and laufzeit and kapitaldienst and wunschrate and st.button("Ber
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
