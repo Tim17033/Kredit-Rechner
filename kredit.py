@@ -36,6 +36,20 @@ def calculate_zins_tilgung(kreditbetrag, zinssatz, laufzeit, monatliche_rate):
 
     return zins_anteile, tilgungs_anteile
 
+# Berechnung der Restschuld nach Zinsbindungsfrist
+def calculate_restschuld(kreditbetrag, zinssatz, laufzeit, zinsbindung):
+    r = zinssatz / 12
+    zinsbindung_monate = zinsbindung * 12
+    restschuld = kreditbetrag
+    monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
+
+    for monat in range(zinsbindung_monate):
+        zins = restschuld * r
+        tilgung = monatliche_rate - zins
+        restschuld -= tilgung
+
+    return restschuld
+
 # UI-Design
 st.title("📊 Kreditverkaufsrechner")
 st.markdown(
@@ -48,6 +62,8 @@ st.markdown(
 # Eingabefelder
 kreditbetrag = st.number_input("Finanzierungsbedarf (€):", min_value=2500, max_value=50000, step=100)
 laufzeit = st.number_input("Gewünschte Laufzeit (in Jahren):", min_value=1, max_value=20, step=1)
+zinsbindung = st.selectbox("Zinsbindungsfrist (in Jahren):", options=[5, 10])
+kapitaldienst = st.number_input("Aktueller Kapitaldienst (€):", min_value=0.0, step=50.0)
 rkv_option = st.radio("Möchten Sie eine Ratenkreditversicherung (RKV) hinzufügen?", options=["Ja", "Nein"])
 
 if st.button("Berechnung starten"):
@@ -60,10 +76,16 @@ if st.button("Berechnung starten"):
     else:
         # Berechnungen
         monatliche_rate = calculate_monthly_rate(kreditbetrag, zinssatz, laufzeit)
+        restschuld = calculate_restschuld(kreditbetrag, zinssatz, laufzeit, zinsbindung)
         zins_anteil = kreditbetrag * (zinssatz / 12)
         tilgung_anteil = monatliche_rate - zins_anteil
         anfaenglicher_tilgungsprozentsatz = (tilgung_anteil / kreditbetrag) * 100
         zinsprozentsatz = zinssatz * 100
+
+        # Kapitaldienstprüfung
+        if monatliche_rate > kapitaldienst:
+            laufzeit += 1
+            st.warning("Die gewünschte Rate passt nicht in den aktuellen Kapitaldienst. Laufzeit wurde verlängert!")
 
         # RKV-Berechnung
         rkv_aufschlag = kreditbetrag * 0.00273
@@ -80,6 +102,7 @@ if st.button("Berechnung starten"):
             - 📉 **Monatliche Rate (mit RKV): {monatliche_rate_mit_rkv:.2f} €**
             - 🔍 **Anfänglicher Zinssatz: {zinsprozentsatz:.2f}%**
             - 📊 **Anfänglicher Tilgungssatz: {anfaenglicher_tilgungsprozentsatz:.2f}%**
+            - 📉 **Restschuld nach {zinsbindung} Jahren: {restschuld:,.2f} €**
             """
         )
 
@@ -93,6 +116,7 @@ if st.button("Berechnung starten"):
         ax.set_ylabel("Betrag (€)", fontsize=12)
         ax.legend()
         st.pyplot(fig)
+
 
 
 
