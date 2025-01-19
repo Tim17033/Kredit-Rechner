@@ -74,7 +74,7 @@ if st.button("Berechnung starten"):
         st.markdown(f"🔍 **Anfänglicher Zinssatz: {zinsprozentsatz:.2f}%**")
         st.markdown(f"📊 **Anfänglicher Tilgungssatz: {anfaenglicher_tilgungsprozentsatz:.2f}%**")
 
-        # Visualisierung 1: Zins- und Tilgungsentwicklung
+        # Visualisierung: Verlauf von Zins- und Tilgungsanteilen
         monate = list(range(1, laufzeit * 12 + 1))
         zins_anteile = []
         tilgungs_anteile = []
@@ -87,26 +87,18 @@ if st.button("Berechnung starten"):
             zins_anteile.append(zins)
             tilgungs_anteile.append(tilgung)
 
-        fig1, ax1 = plt.subplots()
-        ax1.plot(monate, zins_anteile, label="Zinsanteil", color="red")
-        ax1.plot(monate, tilgungs_anteile, label="Tilgungsanteil", color="blue")
-        ax1.set_title("Entwicklung von Zins- und Tilgungsanteilen")
-        ax1.set_xlabel("Monate")
-        ax1.set_ylabel("Betrag (€)")
-        ax1.legend()
-        ax1.grid(True, linestyle="--", alpha=0.6)
-        st.pyplot(fig1)
+        # Grafische Darstellung: Zins- und Tilgungsanteile als Fläche
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(monate, zins_anteile, label="Zinsanteil", color="red", linewidth=2)
+        ax.plot(monate, tilgungs_anteile, label="Tilgungsanteil", color="blue", linewidth=2)
+        ax.fill_between(monate, 0, zins_anteile, color="red", alpha=0.3, label="Zinsen")
+        ax.fill_between(monate, 0, tilgungs_anteile, color="blue", alpha=0.3, label="Tilgung")
+        ax.set_title("Entwicklung von Zins- und Tilgungsanteilen über die Laufzeit", fontsize=16)
+        ax.set_xlabel("Monate", fontsize=12)
+        ax.set_ylabel("Betrag (€)", fontsize=12)
+        ax.grid(True, linestyle="--", alpha=0.6)
+        ax.legend(fontsize=12)
+        st.pyplot(fig)
 
-        # Visualisierung 2: Kreisdiagramm (Zins vs Tilgung)
-        fig2, ax2 = plt.subplots()
-        ax2.pie(
-            [zins_anteil, tilgung_anteil],
-            labels=["Zinsanteil", "Tilgungsanteil"],
-            autopct="%1.1f%%",
-            startangle=90,
-            colors=["#ff9999", "#66b3ff"],
-        )
-        ax2.axis("equal")  # Kreisdiagramm rund darstellen
-        st.pyplot(fig2)
 
 
